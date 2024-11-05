@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter WiFi and MQTT Credentials</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #controlButtons {
+            display: none; /* Hide by default */
+            margin-top: 10px;
+            display: flex; /* Use flexbox to align buttons */
+            justify-content: space-between; /* Space between buttons */
+        }
+        .control-button {
+            flex: 1; /* Make buttons take equal width */
+            margin: 0 5px; /* Space between buttons */
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Enter WiFi and MQTT Credentials</h2>
+    <form id="credentialsForm">
+
+        <!-- <label for="wifiSSID">wifiSSID</label>
+        <input type="text" id="wifiSSID" name="wifiSSID" required>
+
+        <label for="wifiPassword">wifiPassword</label>
+        <input type="text" id="wifiPassword" name="wifiPassword" required> -->
+
+        <label for="mqttBroker">MQTT Broker:</label>
+        <input type="text" id="mqttBroker" name="mqttBroker" required>
+
+        <label for="mqttPort">MQTT Port:</label>
+        <input type="number" id="mqttPort" name="mqttPort" required>
+
+        <label for="mqttUsername">MQTT Username:</label>
+        <input type="text" id="mqttUsername" name="mqttUsername" required>
+
+        <label for="mqttPassword">MQTT Password:</label>
+        <input type="password" id="mqttPassword" name="mqttPassword" required>
+
+        <label for="topic">MQTT Topic:</label>
+        <input type="text" id="topic" name="topic" required>
+
+        <label for="eid">EID:</label>
+        <input type="text" id="eid" name="eid" required> <!-- New EID field -->
+
+        <label for="operation">Operation:</label>
+        <select id="operation" name="operation">
+            <option value="">Select Operation</option>
+            <option value="control">Control</option>
+            <option value="readMeters">Read Meters</option>
+            <option value="readUnitTemperatures">Read Unit Temperatures</option>
+        </select>
+
+        <div id="controlButtons">
+            <button type="button" id="onButton" class="control-button" onclick="sendCommand('ON')">On</button>
+            <button type="button" id="offButton" class="control-button" onclick="sendCommand('OFF')">Off</button>
+        </div>
+
+        <button type="button" onclick="sendCredentials()">Submit</button>
+    </form>
+
+    <script>
+        const operationSelect = document.getElementById('operation');
+        const controlButtons = document.getElementById('controlButtons');
+        let selectedControlCommand = ''; // To store which button is selected
+        controlButtons.style.display = 'none'; 
+
+        // Show/hide control buttons based on operation selection
+        operationSelect.addEventListener('change', () => {
+            if (operationSelect.value === 'control') {
+                controlButtons.style.display = 'flex'; // Show control buttons with flexbox
+            } else {
+                controlButtons.style.display = 'none'; // Hide control buttons
+                selectedControlCommand = ''; // Reset the selected command
+            }
+        });
+
+        function sendCredentials() {
+            // const wifiSSID = document.getElementById("wifiSSID").value;
+            // const wifiPassword = document.getElementById("wifiPassword").value;
+            const mqttBroker = document.getElementById("mqttBroker").value;
+            const mqttPort = document.getElementById("mqttPort").value;
+            const mqttUsername = document.getElementById("mqttUsername").value;
+            const mqttPassword = document.getElementById("mqttPassword").value;
+            const topic = document.getElementById("topic").value;
+            const eid = document.getElementById("eid").value; // Get the EID
+            const operation = operationSelect.value; // Get the selected operation
+
+            const credentials = {
+                // wifiSSID,
+                // wifiPassword,
+                mqttBroker,
+                mqttPort,
+                mqttUsername,
+                mqttPassword,
+                topic,
+                eid, // Include the EID
+                operation,
+                controlCommand: selectedControlCommand // Include the selected control command
+            };
+
+            fetch("http://localhost:5000/send_creds", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(credentials)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+
+        function sendCommand(command) {
+            selectedControlCommand = command; // Store the selected command
+
+            // Optional: you can directly call sendCredentials here if needed
+            // sendCredentials();
+        }
+    </script>
+
+</body>
+</html>
